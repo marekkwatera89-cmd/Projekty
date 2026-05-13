@@ -2,6 +2,7 @@
 
 ## Wprowadzenie
 
+
 Podczas projektowania platform Kubernetes dla aplikacji stanowych jednym z najważniejszych elementów architektury jest wybór odpowiedniego storage backendu.
 
 Na pierwszy rzut oka większość systemów storage wygląda podobnie:
