@@ -1,2 +1,1 @@
-# Projekty
-Ciekawe projekty, testy, które sobie robię
+Praktyczne projekty związane z Kubernetes, DevOps, automatyzacją oraz architekturą infrastruktury. Skupiam się głównie na wydajności systemów, wysokiej dostępności, observability oraz nowoczesnych rozwiązaniach storage dla środowisk produkcyjnych. Większość projektów opiera się na realnych problemach i scenariuszach spotykanych podczas pracy z klientami — od optymalizacji PostgreSQL, przez Ceph i Kubernetes, aż po CI/CD i monitoring. Pokazuję tutaj nie tylko gotowe rozwiązania, ale również proces analizy, benchmarków i podejmowania decyzji architektonicznych.
