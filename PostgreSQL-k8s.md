@@ -2,9 +2,7 @@
 
 ## Wprowadzenie
 
-Podczas projektowania platform Kubernetes dla aplikacji stanowych bardzo ważny jest dobór storage.
-
-W benchmarku porównałem:
+Podczas projektowania platform Kubernetes dla aplikacji stanowych kluczowym elementem jest odpowiedni dobór storage backendu. Jeden z moich klientów po uruchomieniu PostgreSQL na Kubernetes zaczął zgłaszać problemy z wydajnością, głównie związane z wysoką latency i spowolnieniem transakcji. Na etapie projektowania środowiska przewidziano wyłącznie storage oparty o NFS StorageClass, który początkowo wydawał się wystarczający. PostgreSQL jest jednak bardzo wymagającym workloadem, dla którego dużo ważniejsze od samego throughput są fsync, random write oraz transactional latency. W związku z tym przygotowałem benchmark porównujący NFS, CephFS, Ceph RBD oraz klasyczną maszynę wirtualną, aby sprawdzić, które rozwiązanie najlepiej nadaje się pod PostgreSQL.
 
 | Storage | Typ |
 |---|---|
@@ -28,6 +26,7 @@ Celem było sprawdzenie:
 - NFS
 - PVC 10Gi
 - fio benchmark
+- Klasyczna VM 
 
 ---
 
