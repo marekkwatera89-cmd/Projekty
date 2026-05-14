@@ -136,7 +136,7 @@ Nawet jeśli dana podatność dziś wydaje się niegroźna lub niemożliwa do wy
 
 Dobrym przykładem są podatności typu:
 
-- Dirty COW,
+- Dirty Frag
 - Dirty Pipe,
 - Copy Fail,
 - błędy w sterownikach,
