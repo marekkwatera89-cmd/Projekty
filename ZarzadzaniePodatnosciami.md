@@ -97,7 +97,7 @@ Dzięki temu w DefectDojo można filtrować oraz priorytetyzować podatności ni
 5. Aktualizuje wpis w DefectDojo przez REST API.
 
 ### Przykładowy skrypt Python
-w załączniku
+[w załączniku](https://github.com/marekkwatera89-cmd/Projekty/blob/main/Pliki/eps-python.py)
 
 
 ## Dlaczego EPSS jest ważny
