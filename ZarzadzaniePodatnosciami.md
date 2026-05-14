@@ -5,8 +5,9 @@ W środowiskach wirtualnych coraz częściej wykorzystuje się narzędzia takie 
 ## Import wyników do DefectDojo
 
 DefectDojo pozwala na import wyników z wielu narzędzi, w tym z Wazuh oraz Nessus. Po imporcie otrzymujemy przejrzysty widok liczby podatności pogrupowanych według poziomu ryzyka.
+<img width="1118" height="103" alt="obraz" src="https://github.com/user-attachments/assets/de2abef2-1b4e-4b6c-9f49-4effdf52819b" />
 
-![DefectDojo metrics](./DefectDojo_ap28_Wazuh.png)
+ 
 
 ## Wazuh – analiza podatności na podstawie wersji kernela
 
@@ -16,12 +17,14 @@ W praktyce prowadzi to często do dużej liczby false positive. Dystrybucje Linu
 
 Na poniższym screenie Wazuh raportuje około 60 podatności typu Critical:
 
-![Wazuh vulnerabilities](./wazuh%2028.png)
+<img width="836" height="361" alt="obraz" src="https://github.com/user-attachments/assets/231a0bfb-73b6-4b6a-8b0c-da3599c576fe" />
+
+
 
 Jednak po imporcie do DefectDojo widzimy już około 30 podatności Critical:
+<img width="1059" height="121" alt="obraz" src="https://github.com/user-attachments/assets/1a0e4456-fc2c-469c-8508-7ab922964bf8" />
 
-![DefectDojo Wazuh import](./DefectDojo_ap28_Nessus2.png)
-
+ 
 Różnica wynika głównie z deduplikacji podatności. Te same CVE mogą występować jednocześnie w dwóch kernelach, np.:
 
 - `linux-image-6.8.0-110-generic`
@@ -70,6 +73,55 @@ Przykład:
 - Canonical Ubuntu Security → Medium
 
 Wynika to z faktu, że Canonical bierze pod uwagę rzeczywisty wpływ podatności na Ubuntu oraz zastosowane poprawki bezpieczeństwa.
+
+## Automatyczne przypisywanie EPSS do podatności w DefectDojo
+
+Aby lepiej oceniać ryzyko podatności, warto przypisywać do wyników również wskaźnik EPSS (Exploit Prediction Scoring System). Dzięki temu można określić prawdopodobieństwo realnego wykorzystania podatności przez atakujących.
+
+W projekcie został dodany również skrypt Python, który:
+
+- łączy się z API DefectDojo,
+- pobiera listę podatności,
+- odczytuje identyfikatory CVE,
+- pobiera wynik EPSS z API FIRST,
+- automatycznie aktualizuje podatności w DefectDojo.
+
+Dzięki temu w DefectDojo można filtrować oraz priorytetyzować podatności nie tylko na podstawie CVSS, ale również realnego ryzyka exploita.
+
+### Jak działa skrypt
+
+1. Pobiera wszystkie aktywne podatności z DefectDojo.
+2. Dla każdej podatności odczytuje numer CVE.
+3. Łączy się z API EPSS:
+4. Pobiera aktualny wynik EPSS.
+5. Aktualizuje wpis w DefectDojo przez REST API.
+
+### Przykładowy skrypt Python
+w załączniku
+
+
+## Dlaczego EPSS jest ważny
+
+CVSS określa poziom krytyczności podatności, jednak nie mówi, czy podatność jest realnie wykorzystywana przez atakujących.
+
+Przykład:
+
+| CVE | CVSS | EPSS | Znaczenie |
+|---|---|---|---|
+| CVE-2024-XXXX | 9.8 Critical | 0.01 | Bardzo groźna technicznie, ale mało wykorzystywana |
+| CVE-2024-YYYY | 6.5 Medium | 0.92 | Średnia krytyczność, ale aktywnie wykorzystywana |
+
+Dlatego połączenie:
+
+- CVSS,
+- EPSS,
+- danych vendorów (Canonical, RedHat),
+- wyników Nessusa,
+- wyników Wazuh,
+
+daje znacznie lepszy obraz realnego ryzyka bezpieczeństwa.
+
+
 
 ## Podatności w IT nigdy nie „znikają”
 
