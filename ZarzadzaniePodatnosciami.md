@@ -134,10 +134,10 @@ Jednym z największych problemów bezpieczeństwa IT jest fakt, że raz przeanal
 
 Nawet jeśli dana podatność dziś wydaje się niegroźna lub niemożliwa do wykorzystania, za jakiś czas może stać się realnym zagrożeniem.
 
-Dobrym przykładem są podatności typu:
+Dobrym przykładem są podatności :
 
 - Dirty Frag
-- Dirty Pipe,
+- Fragnesia,
 - Copy Fail,
 - błędy w sterownikach,
 - podatności w modułach jądra.
