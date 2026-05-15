@@ -551,14 +551,3 @@ W tym scenariuszu Ceph RBD okazał się najbardziej stabilnym i najbardziej popr
 
 ---
 
-# Autor
-
-DevOps / Kubernetes / Storage Engineering
-
-Specjalizacja:
-
-- Kubernetes,
-- storage architecture,
-- observability,
-- stateful workloads,
-- high availability systems.
