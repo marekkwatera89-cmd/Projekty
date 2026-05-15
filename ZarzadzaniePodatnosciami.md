@@ -74,6 +74,29 @@ Przykład:
 
 Wynika to z faktu, że Canonical bierze pod uwagę rzeczywisty wpływ podatności na Ubuntu oraz zastosowane poprawki bezpieczeństwa.
 
+## Dlaczego EPSS jest ważny
+
+CVSS określa poziom krytyczności podatności, jednak nie mówi, czy podatność jest realnie wykorzystywana przez atakujących.
+
+Przykład:
+
+| CVE | CVSS | EPSS | Znaczenie |
+|---|---|---|---|
+| CVE-2024-XXXX | 9.8 Critical | 0.01 | Bardzo groźna technicznie, ale mało wykorzystywana |
+| CVE-2024-YYYY | 6.5 Medium | 0.92 | Średnia krytyczność, ale aktywnie wykorzystywana |
+
+Dlatego połączenie:
+
+- CVSS,
+- EPSS,
+- danych vendorów (Canonical, RedHat),
+- wyników Nessusa,
+- wyników Wazuh,
+
+daje znacznie lepszy obraz realnego ryzyka bezpieczeństwa.
+
+
+
 ## Automatyczne przypisywanie EPSS do podatności w DefectDojo
 
 Aby lepiej oceniać ryzyko podatności, warto przypisywać do wyników również wskaźnik EPSS (Exploit Prediction Scoring System). Dzięki temu można określić prawdopodobieństwo realnego wykorzystania podatności przez atakujących.
@@ -98,28 +121,6 @@ Dzięki temu w DefectDojo można filtrować oraz priorytetyzować podatności ni
 
 ### Skrypt, który użyłem w swojej pracy
 [w załączniku](https://github.com/marekkwatera89-cmd/Projekty/blob/main/Pliki/eps-python.py)
-
-
-## Dlaczego EPSS jest ważny
-
-CVSS określa poziom krytyczności podatności, jednak nie mówi, czy podatność jest realnie wykorzystywana przez atakujących.
-
-Przykład:
-
-| CVE | CVSS | EPSS | Znaczenie |
-|---|---|---|---|
-| CVE-2024-XXXX | 9.8 Critical | 0.01 | Bardzo groźna technicznie, ale mało wykorzystywana |
-| CVE-2024-YYYY | 6.5 Medium | 0.92 | Średnia krytyczność, ale aktywnie wykorzystywana |
-
-Dlatego połączenie:
-
-- CVSS,
-- EPSS,
-- danych vendorów (Canonical, RedHat),
-- wyników Nessusa,
-- wyników Wazuh,
-
-daje znacznie lepszy obraz realnego ryzyka bezpieczeństwa.
 
 
 
