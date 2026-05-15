@@ -96,7 +96,7 @@ Dzięki temu w DefectDojo można filtrować oraz priorytetyzować podatności ni
 4. Pobiera aktualny wynik EPSS.
 5. Aktualizuje wpis w DefectDojo przez REST API.
 
-### Przykładowy skrypt Python
+### Skrypt, który użyłem w swojej pracy
 [w załączniku](https://github.com/marekkwatera89-cmd/Projekty/blob/main/Pliki/eps-python.py)
 
 
