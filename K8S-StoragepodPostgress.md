@@ -550,4 +550,271 @@ W tym scenariuszu Ceph RBD okazał się najbardziej stabilnym i najbardziej popr
 - Stateful Workloads
 
 ---
+---
+# Update 26.05.2026
+---
+# Dodanie nowego backendu storage
+
+## Longhorn
+
+Rozproszony Kubernetes-native block storage oparty o CSI.
+
+### Zalety
+
+- natywna integracja z Kubernetes,
+- HA storage,
+- snapshoty,
+- replikacja danych,
+- prosty deployment,
+- łatwe recovery volume.
+
+### Wady
+
+- wyższe latency,
+- duży overhead przy sync write,
+- słabszy random I/O,
+- wydajność zależna od sieci między node.
+
+---
+
+# Aktualizacja sekcji: Testowane klasy storage
+
+| Storage | Typ |
+|---|---|
+| NFS | współdzielony filesystem |
+| CephFS | rozproszony filesystem |
+| Ceph RBD | rozproszony block storage |
+| Longhorn | Kubernetes-native distributed block storage |
+
+---
+
+# Aktualizacja sekcji: Sequential Write
+
+| Storage | Wynik |
+|---|---|
+| 🥇 Ceph RBD | ~270 MiB/s |
+| 🥈 NFS | ~141 MiB/s |
+| 🥉 CephFS | ~120 MiB/s |
+| 4️⃣ Longhorn | ~48.3 MiB/s |
+
+## Interpretacja
+
+Longhorn osiągnął najniższy wynik w teście sequential write.
+
+Powodem jest architektura distributed storage:
+
+- synchronizacja replik,
+- network replication,
+- dodatkowa warstwa Longhorn engine,
+- CSI overhead.
+
+Każdy zapis:
+1. trafia do Longhorn engine,
+2. jest przesyłany przez sieć,
+3. synchronizowany między replikami,
+4. potwierdzany przez backend storage.
+
+To powoduje wyraźnie wyższy koszt write workload niż w Ceph RBD.
+
+Jednocześnie Longhorn zapewnia:
+- HA,
+- recovery,
+- snapshoty,
+- prosty deployment w Kubernetes.
+
+---
+
+# Aktualizacja sekcji: Sequential Read
+
+| Storage | Wynik |
+|---|---|
+| 🥇 NFS | ~810 MiB/s |
+| 🥈 Ceph RBD | ~489 MiB/s |
+| 🥉 CephFS | ~184 MiB/s |
+| 4️⃣ Longhorn | ~94.8 MiB/s |
+
+## Interpretacja
+
+Sequential read był wyraźnie szybszy niż sequential write, jednak Longhorn nadal osiągnął najniższy wynik spośród wszystkich backendów.
+
+Mimo że read:
+- nie wymaga synchronizacji write,
+- korzysta z cache,
+- jest mniej kosztowny niż transactional IO,
+
+Longhorn nadal ponosi koszt:
+- warstwy CSI,
+- metadata handling,
+- distributed block storage,
+- sieciowej architektury storage.
+
+Longhorn dużo lepiej radzi sobie z workload read-heavy niż write-heavy.
+
+---
+
+# Aktualizacja sekcji: Random Read 4k
+
+| Storage | Wynik |
+|---|---|
+| 🥇 NFS | ~20k IOPS |
+| 🥈 Ceph RBD | ~16k IOPS |
+| 🥉 CephFS | ~12k IOPS |
+| 4️⃣ Longhorn | ~3.4k IOPS |
+
+## Interpretacja
+
+Random Read 4k bardzo dobrze symuluje:
+- PostgreSQL index lookup,
+- OLTP,
+- cache miss,
+- małe operacje losowe.
+
+To właśnie ten benchmark najlepiej pokazuje ograniczenia Longhorna.
+
+Każda operacja:
+- przechodzi przez Longhorn engine,
+- korzysta z CSI,
+- generuje dodatkowe latency,
+- obciąża storage metadata.
+
+Wysokie:
+- queue depth,
+- util,
+- liczba operacji IO
+
+pokazują pełne wysycenie backend storage.
+
+Dla PostgreSQL oznacza to:
+- wyższy query latency,
+- wolniejsze indeksy,
+- niższy throughput OLTP.
+
+---
+
+# Aktualizacja sekcji: Mixed Read/Write 70/30
+
+| Storage | Read | Write |
+|---|---|---|
+| 🥇 Ceph RBD | ~56 MiB/s | ~24 MiB/s |
+| 🥈 CephFS | ~45 MiB/s | ~19 MiB/s |
+| 🥉 NFS | ~44 MiB/s | ~19 MiB/s |
+| 4️⃣ Longhorn | ~15 MiB/s | ~6.5 MiB/s |
+
+## Interpretacja
+
+Mixed workload bardzo dobrze symuluje rzeczywiste zachowanie PostgreSQL.
+
+To właśnie tutaj Longhorn pokazuje największy koszt architektury distributed replicated storage.
+
+Każdy write:
+- synchronizuje repliki,
+- przechodzi przez sieć,
+- wymaga acknowledgement,
+- generuje dodatkowe latency.
+
+W efekcie:
+- write throughput był najniższy,
+- queue depth bardzo wysoki,
+- storage backend praktycznie stale wysycony.
+
+Longhorn nadal zapewnia jednak:
+- HA,
+- persistence,
+- recovery po awarii node,
+- łatwe zarządzanie volume.
+
+---
+
+# Aktualizacja sekcji: PostgreSQL WAL / Sync Write Test
+
+## Najważniejszy benchmark
+
+| Storage | Wynik |
+|---|---|
+| 🥇 CephFS | ~51 MiB/s |
+| 🥈 Ceph RBD | ~47 MiB/s |
+| 🥉 Longhorn | ~11.3 MiB/s |
+| 🔴 NFS | ~9 MiB/s |
+
+## Interpretacja
+
+To najważniejszy benchmark całego porównania.
+
+Symuluje:
+- PostgreSQL WAL,
+- synchronous commit,
+- fsync,
+- transactional write.
+
+Longhorn osiągnął wynik wyraźnie lepszy od NFS, jednak znacznie słabszy od CephFS oraz Ceph RBD.
+
+Powodem jest:
+- sync write replication,
+- distributed acknowledgment,
+- transactional latency,
+- synchronizacja replik.
+
+Każda operacja WAL:
+1. musi zostać zapisana,
+2. zsynchronizowana,
+3. potwierdzona przez backend storage.
+
+To powoduje ogromny wzrost:
+- latency,
+- queue depth,
+- storage utilization.
+
+Jednocześnie Longhorn nadal oferuje:
+- HA,
+- snapshoty,
+- recovery,
+- prostą integrację z Kubernetes.
+
+---
+
+# Aktualizacja sekcji: Finalne porównanie
+
+| Use Case | Najlepszy Storage |
+|---|---|
+| PostgreSQL | 🥇 Ceph RBD |
+| Stateful Applications | 🥇 Ceph RBD |
+| Shared RWX Storage | 🥇 CephFS |
+| Shared Application Data | 🥇 CephFS |
+| Kubernetes-native HA Storage | 🥇 Longhorn |
+| Homelab / Small Production | 🥇 Longhorn |
+| Backupy | 🥇 NFS |
+| Media Streaming | 🥇 NFS |
+| Sequential Read | 🥇 NFS |
+
+---
+
+# Aktualizacja sekcji: Wnioski techniczne
+
+## Longhorn
+
+Bardzo dobry storage backend dla:
+
+- Kubernetes-native environments,
+- homelabów,
+- małych i średnich środowisk,
+- HA storage,
+- prostego disaster recovery,
+- StatefulSet workloads.
+
+Słabszy dla:
+- wysokiego IOPS,
+- intensywnego OLTP,
+- bardzo dużych baz PostgreSQL,
+- workloadów fsync-heavy.
+
+Największą zaletą Longhorna jest:
+- prostota deploymentu,
+- integracja z Kubernetes,
+- łatwość recovery,
+- distributed storage bez skomplikowanego Cepha.
+
+Największym ograniczeniem pozostaje:
+- write latency,
+- random I/O,
+- sync write overhead.
 
