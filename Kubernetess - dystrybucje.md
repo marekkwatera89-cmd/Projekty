@@ -82,7 +82,6 @@ Możliwość zastosowania dowolnych rozwiązań:
 - Ceph
 - Longhorn
 - NFS
-- Istio
 - NGINX
 - Cilium
 - Prometheus
@@ -356,6 +355,166 @@ Vanilla Kubernetes sprawdzi się najlepiej gdy:
 - przygotowujemy się do certyfikatów CKA lub CKS.
 
 ---
+
+# Architektura i wymagania infrastrukturalne
+
+Jedną z największych różnic pomiędzy omawianymi dystrybucjami jest liczba wymaganych komponentów do zbudowania środowiska produkcyjnego.
+
+## K3s
+
+K3s został zaprojektowany z myślą o prostocie wdrożenia. Już pojedyncza maszyna wirtualna może pełnić rolę kompletnego klastra Kubernetes.
+
+Minimalna architektura:
+
+```
++----------------------+
+|      VM 1            |
+|----------------------|
+| Control Plane        |
+| Worker               |
+| SQLite / etcd        |
+| Traefik              |
+| ServiceLB            |
++----------------------+
+```
+
+W praktyce oznacza to, że już **jedna maszyna wirtualna** pozwala uruchomić w pełni funkcjonalny klaster, który sprawdzi się w:
+
+- środowiskach developerskich,
+- laboratoriach,
+- HomeLab,
+- testach aplikacji,
+- małych środowiskach produkcyjnych.
+
+Jeżeli wymagamy wysokiej dostępności (HA), wystarczy rozbudować klaster do trzech serwerów.
+
+```
+Server 1
+Server 2
+Server 3
+```
+
+Bez konieczności instalowania wielu dodatkowych komponentów.
+
+---
+
+## MicroK8s
+
+MicroK8s również umożliwia uruchomienie kompletnego klastra na pojedynczej maszynie.
+
+```
++----------------------+
+|      VM 1            |
+|----------------------|
+| Control Plane        |
+| Worker               |
+| Add-ons              |
++----------------------+
+```
+
+To rozwiązanie świetnie sprawdza się podczas:
+
+- tworzenia środowisk testowych,
+- nauki Kubernetes,
+- lokalnego developmentu.
+
+Podobnie jak K3s, w razie potrzeby można rozszerzyć klaster do konfiguracji wysokiej dostępności.
+
+---
+
+## Vanilla Kubernetes
+
+W przypadku Vanilla Kubernetes sytuacja wygląda zupełnie inaczej.
+
+Choć technicznie możliwe jest uruchomienie klastra na jednej maszynie, **nie jest to rozwiązanie zalecane ani spotykane w środowiskach produkcyjnych**. Standardem jest budowa architektury wysokiej dostępności (HA), która zapewnia odporność na awarie.
+
+Typowa architektura produkcyjna obejmuje:
+
+```
+                 +-----------+
+                 | HAProxy   |
+                 +-----+-----+
+                       |
+        +--------------+--------------+
+        |              |              |
++---------------+ +---------------+ +---------------+
+| Control Plane | | Control Plane | | Control Plane |
+|      #1       | |      #2       | |      #3       |
++---------------+ +---------------+ +---------------+
+        |              |              |
+        +--------------+--------------+
+                       |
+        +-------------------------------+
+        |         Worker Nodes          |
+        +-------------------------------+
+                       |
+               +---------------+
+               | Storage (NFS, |
+               | Ceph, SAN...) |
+               +---------------+
+```
+
+Najczęściej wymagane są dodatkowe komponenty:
+
+- 3 serwery Control Plane,
+- Load Balancer (np. HAProxy lub Keepalived),
+- współdzielona pamięć masowa (NFS, Ceph, SAN, Longhorn),
+- Ingress Controller,
+- cert-manager,
+- rozwiązanie do monitoringu (Prometheus, Grafana),
+- centralny system logowania (Loki, Elasticsearch, OpenSearch).
+
+Powoduje to znacznie większą złożoność wdrożenia oraz wyższe koszty utrzymania.
+
+---
+
+## Przykładowe wymagania infrastrukturalne
+
+| Element | K3s | MicroK8s | Vanilla Kubernetes |
+|---------|-----|----------|--------------------|
+| Minimalna liczba VM | **1** | **1** | **3–5** |
+| Control Plane | 1 | 1 | 3 |
+| Worker | opcjonalnie | opcjonalnie | osobne węzły |
+| Load Balancer | Nie | Nie | Tak |
+| HAProxy | Nie | Nie | Tak |
+| NFS / Ceph | Opcjonalnie | Opcjonalnie | Zalecane |
+| etcd | Wbudowane | Wbudowane | Osobna konfiguracja |
+| Traefik / Ingress | Wbudowany | Add-on | Instalacja ręczna |
+
+---
+
+## Wpływ na koszt wdrożenia
+
+Różnice w architekturze mają bezpośredni wpływ na koszt projektu.
+
+Przykładowo:
+
+**K3s**
+
+- 1 maszyna wirtualna,
+- około 15–30 minut instalacji,
+- praktycznie brak dodatkowych komponentów.
+
+**MicroK8s**
+
+- 1 maszyna wirtualna,
+- około 30–60 minut konfiguracji.
+
+**Vanilla Kubernetes**
+
+- minimum 3 maszyny dla Control Plane,
+- osobne Workery,
+- Load Balancer,
+- magazyn danych (NFS, Ceph lub SAN),
+- konfiguracja sieci,
+- certyfikaty,
+- monitoring,
+- backup etcd.
+
+W praktyce oznacza to, że wdrożenie produkcyjnego klastra Vanilla Kubernetes może wymagać **5–8 maszyn wirtualnych** oraz kilku dni pracy administratora, podczas gdy funkcjonalny klaster K3s lub MicroK8s można uruchomić na **jednej maszynie wirtualnej w ciągu kilkunastu minut**.
+
+> **Uwaga:** Warto podkreślić, że możliwość uruchomienia K3s lub MicroK8s na jednej maszynie nie oznacza, że jest to zalecana architektura produkcyjna. W środowiskach wymagających wysokiej dostępności (HA) również dla tych dystrybucji rekomenduje się wykorzystanie co najmniej trzech serwerów kontrolnych. Jednak nawet w takiej konfiguracji liczba wymaganych komponentów i stopień skomplikowania pozostają zazwyczaj mniejsze niż w przypadku klasycznego Vanilla Kubernetes.
+
 
 # Podsumowanie
 
