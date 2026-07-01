@@ -1,235 +1,80 @@
 # Porównanie dystrybucji Kubernetes – K3s vs MicroK8s vs Vanilla Kubernetes
 
-> Praktyczne porównanie trzech najpopularniejszych dystrybucji Kubernetes z uwzględnieniem wymagań sprzętowych, kosztów wdrożenia, czasu implementacji oraz zastosowań.
+> Praktyczne porównanie trzech najpopularniejszych dystrybucji Kubernetes z uwzględnieniem wymagań sprzętowych, architektury, kosztów wdrożenia, czasu implementacji oraz zastosowań.
+
+---
+
+# Spis treści
+
+1. Wstęp
+2. Czym są poszczególne dystrybucje?
+3. Architektura i wymagania infrastrukturalne
+4. Porównanie zasobów
+5. Czas i koszt wdrożenia
+6. Zalety i wady
+7. Kiedy wybrać daną dystrybucję?
+8. Podsumowanie
 
 ---
 
 # Wstęp
 
-Kubernetes stał się standardem w orkiestracji kontenerów. Wraz z jego rosnącą popularnością powstało wiele dystrybucji ułatwiających wdrożenie klastra. Najczęściej spotykane rozwiązania to:
+Kubernetes jest obecnie najpopularniejszą platformą do orkiestracji kontenerów. Oprócz oficjalnej dystrybucji (Vanilla Kubernetes) dostępne są również lżejsze rozwiązania, takie jak **K3s** oraz **MicroK8s**.
 
-- **Vanilla Kubernetes (kubeadm)** – oficjalna wersja rozwijana przez CNCF.
-- **K3s** – lekka dystrybucja stworzona przez Rancher.
-- **MicroK8s** – dystrybucja rozwijana przez Canonical.
+Wszystkie trzy dystrybucje są zgodne z API Kubernetes, jednak różnią się:
 
-Każda z nich posiada ten sam interfejs API Kubernetes, jednak różni się wymaganiami sprzętowymi, łatwością wdrożenia oraz kosztami utrzymania.
-
----
-
-# Krótkie porównanie
-
-| Cecha | Vanilla Kubernetes | K3s | MicroK8s |
-|--------|-------------------|------|-----------|
-| Trudność instalacji | ⭐⭐⭐⭐⭐ | ⭐ | ⭐⭐ |
-| Zużycie pamięci RAM | Wysokie | Bardzo niskie | Średnie |
-| Zużycie CPU | Średnie | Niskie | Średnie |
-| Wdrożenie HA | Tak | Tak | Tak |
-| Certyfikacja CNCF | Tak | Tak | Tak |
-| Łatwość aktualizacji | Średnia | Bardzo łatwa | Łatwa |
+- wymaganiami sprzętowymi,
+- stopniem skomplikowania wdrożenia,
+- kosztami utrzymania,
+- czasem konfiguracji,
+- docelowym zastosowaniem.
 
 ---
 
-# Vanilla Kubernetes 
+# Czym są poszczególne dystrybucje?
 
-## Czym jest?
+## Vanilla Kubernetes
 
-Vanilla Kubernetes to oficjalna implementacja projektu Kubernetes. Nie zawiera dodatkowych komponentów ani uproszczeń. Administrator sam decyduje o wyborze wszystkich elementów klastra.
+Oficjalna implementacja rozwijana przez społeczność Kubernetes (CNCF). Administrator sam dobiera wszystkie komponenty, takie jak sieć, storage, monitoring czy Ingress.
 
-Najczęściej wykorzystywane narzędzia instalacyjne:
+**Najlepiej sprawdza się w:**
 
-- kubeadm
-- Kubespray
-- Cluster API
-- Talos Linux
-
----
-
-## Zalety
-
-### Pełna kontrola
-
-Administrator wybiera:
-
-- CNI (Calico, Cilium, Flannel)
-- CSI
-- Ingress Controller
-- Storage
-- Monitoring
-- Logging
-- Security
-
-Nic nie jest narzucone.
+- dużych środowiskach produkcyjnych,
+- centrach danych,
+- chmurach prywatnych,
+- środowiskach Enterprise.
 
 ---
 
-### Standard rynkowy
+## K3s
 
-Większość usług chmurowych bazuje właśnie na Vanilla Kubernetes:
+Lekka dystrybucja opracowana przez Rancher.
 
-- Amazon EKS
-- Azure AKS
-- Google GKE
-- Oracle OKE
+Najważniejsze cechy:
 
-Znajomość Vanilla Kubernetes przekłada się na umiejętność pracy praktycznie z każdym klastrem produkcyjnym.
+- bardzo małe wymagania sprzętowe,
+- szybka instalacja,
+- wbudowany Traefik,
+- wbudowany ServiceLB,
+- możliwość pracy na Raspberry Pi i Edge.
 
----
-
-### Największa elastyczność
-
-Możliwość zastosowania dowolnych rozwiązań:
-
-- Ceph
-- Longhorn
-- NFS
-- NGINX
-- Cilium
-- Prometheus
-- Grafana
-- Loki
-
----
-
-## Wady
-
-Największą wadą jest stopień skomplikowania.
-
-Przy budowie klastra należy skonfigurować między innymi:
-
-- etcd
-- kube-apiserver
-- scheduler
-- controller-manager
-- kubelet
-- containerd
-- Load Balancer
-- Ingress
-- Storage
-- Certyfikaty
-
-Budowa klastra produkcyjnego zajmuje zwykle od kilku dni do nawet tygodnia, w zależności od wymagań.
-
----
-
-## Minimalne wymagania
-
-Środowisko testowe
-
-- 2 vCPU
-- 4 GB RAM
-
-Kontroler produkcyjny
-
-- 4–8 vCPU
-- 8–16 GB RAM
-
----
-
-# K3s
-
-## Czym jest?
-
-K3s to lekka dystrybucja Kubernetes opracowana przez firmę Rancher.
-
-Powstała z myślą o:
-
-- Edge Computing
-- IoT
-- HomeLab
-- Raspberry Pi
-- małych i średnich klastrach produkcyjnych
-
-Mimo uproszczeń pozostaje w pełni zgodna z Kubernetes i posiada certyfikację CNCF.
-
----
-
-## Dlaczego K3s jest lekki?
-
-Twórcy uprościli wiele komponentów.
-
-Przykładowo:
-
-- SQLite zamiast etcd (Single Node)
-- Wbudowany Traefik
-- Wbudowany ServiceLB
-- Wbudowany Helm Controller
-
-Instalacja sprowadza się praktycznie do jednego polecenia:
+Instalacja:
 
 ```bash
 curl -sfL https://get.k3s.io | sh -
 ```
 
-Po kilku minutach otrzymujemy działający klaster.
-
 ---
 
-## Zalety
+## MicroK8s
 
-### Bardzo małe wymagania sprzętowe
+Dystrybucja rozwijana przez Canonical.
 
-Minimalne środowisko:
+Najważniejsze cechy:
 
-- 1 vCPU
-- 1 GB RAM
-
-Rekomendowane:
-
-- 2 vCPU
-- 2 GB RAM
-
-Jest to nawet 3–4 razy mniej niż Vanilla Kubernetes.
-
----
-
-### Szybkość wdrożenia
-
-| Typ klastra | Czas |
-|-------------|------|
-| Single Node | 5 minut |
-| HA | 20–30 minut |
-
----
-
-### Niskie koszty
-
-Dzięki niewielkim wymaganiom sprzętowym można:
-
-- uruchomić więcej klastrów,
-- wykorzystać mniejsze maszyny,
-- znacząco obniżyć koszty chmury.
-
-Przy kilkudziesięciu klastrach oszczędności mogą wynosić nawet kilkadziesiąt procent względem pełnego Kubernetes.
-
----
-
-### Doskonały do Edge Computing
-
-Idealnie sprawdza się w:
-
-- sklepach
-- oddziałach firmy
-- fabrykach
-- serwerowniach lokalnych
-- urządzeniach IoT
-
----
-
-## Wady
-
-Domyślnie instalowane są dodatkowe komponenty (Traefik, ServiceLB), które w dużych środowiskach często są zastępowane rozwiązaniami enterprise.
-
-Nie stanowi to jednak większego problemu.
-
----
-
-# MicroK8s
-
-## Czym jest?
-
-MicroK8s jest rozwijany przez Canonical.
-
-Największy nacisk położono na prostotę instalacji oraz integrację z Ubuntu.
+- prostota instalacji,
+- modułowe dodatki,
+- bardzo dobra integracja z Ubuntu.
 
 Instalacja:
 
@@ -239,136 +84,17 @@ sudo snap install microk8s --classic
 
 ---
 
-## Zalety
-
-### Modułowa budowa
-
-Dodatkowe komponenty można włączać poleceniami:
-
-```bash
-microk8s enable dns
-microk8s enable ingress
-microk8s enable storage
-microk8s enable metallb
-```
-
----
-
-### Idealny dla programistów
-
-MicroK8s świetnie sprawdza się jako lokalny klaster do:
-
-- testów
-- developmentu
-- CI/CD
-- Proof of Concept
-
----
-
-### Integracja z Ubuntu
-
-Jest bardzo dobrze wspierany przez Canonical.
-
----
-
-## Wady
-
-Największą wadą jest wykorzystanie pakietów Snap.
-
-MicroK8s zużywa również zauważalnie więcej pamięci RAM niż K3s.
-
----
-
-# Porównanie zużycia zasobów
-
-Przybliżone zużycie zasobów przez pusty klaster.
-
-| Dystrybucja | RAM | CPU |
-|-------------|-----|-----|
-| K3s | 500–800 MB | Bardzo niskie |
-| MicroK8s | 1,5–2,5 GB | Średnie |
-| Vanilla Kubernetes | 2–4 GB | Średnie |
-
-Bezapelacyjnie wygrywa tutaj **K3s**.
-
----
-
-# Czas wdrożenia
-
-| Zadanie | Vanilla | K3s | MicroK8s |
-|----------|----------|------|-----------|
-| Instalacja Single Node | 1–2 godziny | 5 minut | 10 minut |
-| Klaster HA | 1–3 dni | 20–30 minut | 1–2 godziny |
-| Środowisko produkcyjne | kilka dni | kilka godzin | około 1 dnia |
-
-Największą oszczędność czasu zapewnia K3s.
-
----
-
-# Koszt wdrożenia
-
-Przykład klastra składającego się z 3 maszyn.
-
-| Dystrybucja | Zalecana VM | Koszt infrastruktury |
-|-------------|------------|----------------------|
-| K3s | 2 vCPU / 2 GB RAM | Niski |
-| MicroK8s | 2 vCPU / 4 GB RAM | Średni |
-| Vanilla Kubernetes | 4 vCPU / 8 GB RAM | Wysoki |
-
-Do kosztów infrastruktury należy doliczyć czas administratora. W praktyce wdrożenie Vanilla Kubernetes wymaga znacznie większego nakładu pracy, co przekłada się na wyższy koszt projektu.
-
----
-
-# Kiedy wybrać K3s?
-
-K3s będzie najlepszym wyborem, gdy:
-
-- liczy się szybkość wdrożenia,
-- zasoby sprzętowe są ograniczone,
-- budujemy HomeLab,
-- tworzymy środowisko developerskie,
-- wdrażamy rozwiązania Edge Computing,
-- chcemy ograniczyć koszty infrastruktury,
-- potrzebujemy wielu klastrów testowych.
-
----
-
-# Kiedy wybrać MicroK8s?
-
-MicroK8s warto wybrać gdy:
-
-- pracujemy głównie na Ubuntu,
-- potrzebujemy lokalnego klastra,
-- tworzymy środowisko developerskie,
-- chcemy szybko uruchomić Proof of Concept.
-
----
-
-# Kiedy wybrać Vanilla Kubernetes?
-
-Vanilla Kubernetes sprawdzi się najlepiej gdy:
-
-- budujemy środowisko Enterprise,
-- wymagamy pełnej kontroli nad komponentami,
-- integrujemy zaawansowane rozwiązania sieciowe i storage,
-- planujemy rozbudowane klastry produkcyjne,
-- przygotowujemy się do certyfikatów CKA lub CKS.
-
----
-
 # Architektura i wymagania infrastrukturalne
 
-Jedną z największych różnic pomiędzy omawianymi dystrybucjami jest liczba wymaganych komponentów do zbudowania środowiska produkcyjnego.
+Największą różnicą pomiędzy tymi rozwiązaniami jest liczba wymaganych komponentów do uruchomienia klastra.
 
 ## K3s
 
-K3s został zaprojektowany z myślą o prostocie wdrożenia. Już pojedyncza maszyna wirtualna może pełnić rolę kompletnego klastra Kubernetes.
+Już jedna maszyna może stanowić kompletny klaster.
 
-Minimalna architektura:
-
-```
+```text
 +----------------------+
-|      VM 1            |
+| VM 1                 |
 |----------------------|
 | Control Plane        |
 | Worker               |
@@ -378,33 +104,22 @@ Minimalna architektura:
 +----------------------+
 ```
 
-W praktyce oznacza to, że już **jedna maszyna wirtualna** pozwala uruchomić w pełni funkcjonalny klaster, który sprawdzi się w:
+Świetny wybór do:
 
-- środowiskach developerskich,
-- laboratoriach,
-- HomeLab,
-- testach aplikacji,
-- małych środowiskach produkcyjnych.
-
-Jeżeli wymagamy wysokiej dostępności (HA), wystarczy rozbudować klaster do trzech serwerów.
-
-```
-Server 1
-Server 2
-Server 3
-```
-
-Bez konieczności instalowania wielu dodatkowych komponentów.
+- HomeLab
+- środowisk developerskich
+- testów
+- małych środowisk produkcyjnych
 
 ---
 
 ## MicroK8s
 
-MicroK8s również umożliwia uruchomienie kompletnego klastra na pojedynczej maszynie.
+Również może działać na jednej maszynie.
 
-```
+```text
 +----------------------+
-|      VM 1            |
+| VM 1                 |
 |----------------------|
 | Control Plane        |
 | Worker               |
@@ -412,25 +127,15 @@ MicroK8s również umożliwia uruchomienie kompletnego klastra na pojedynczej ma
 +----------------------+
 ```
 
-To rozwiązanie świetnie sprawdza się podczas:
-
-- tworzenia środowisk testowych,
-- nauki Kubernetes,
-- lokalnego developmentu.
-
-Podobnie jak K3s, w razie potrzeby można rozszerzyć klaster do konfiguracji wysokiej dostępności.
+Najczęściej wykorzystywany przez programistów oraz w środowiskach testowych.
 
 ---
 
 ## Vanilla Kubernetes
 
-W przypadku Vanilla Kubernetes sytuacja wygląda zupełnie inaczej.
+Produkcyjne wdrożenia zazwyczaj wymagają architektury HA.
 
-Choć technicznie możliwe jest uruchomienie klastra na jednej maszynie, **nie jest to rozwiązanie zalecane ani spotykane w środowiskach produkcyjnych**. Standardem jest budowa architektury wysokiej dostępności (HA), która zapewnia odporność na awarie.
-
-Typowa architektura produkcyjna obejmuje:
-
-```
+```text
                  +-----------+
                  | HAProxy   |
                  +-----+-----+
@@ -438,104 +143,114 @@ Typowa architektura produkcyjna obejmuje:
         +--------------+--------------+
         |              |              |
 +---------------+ +---------------+ +---------------+
-| Control Plane | | Control Plane | | Control Plane |
-|      #1       | |      #2       | |      #3       |
+| ControlPlane1 | | ControlPlane2 | | ControlPlane3 |
 +---------------+ +---------------+ +---------------+
         |              |              |
         +--------------+--------------+
                        |
-        +-------------------------------+
-        |         Worker Nodes          |
-        +-------------------------------+
+                Worker Nodes
                        |
-               +---------------+
-               | Storage (NFS, |
-               | Ceph, SAN...) |
-               +---------------+
+        +------------------------------+
+        | NFS / Ceph / SAN / Longhorn |
+        +------------------------------+
 ```
 
-Najczęściej wymagane są dodatkowe komponenty:
+Najczęściej wymagane komponenty:
 
-- 3 serwery Control Plane,
-- Load Balancer (np. HAProxy lub Keepalived),
-- współdzielona pamięć masowa (NFS, Ceph, SAN, Longhorn),
+- 3 × Control Plane,
+- HAProxy lub Keepalived,
+- magazyn danych (NFS, Ceph, SAN lub Longhorn),
 - Ingress Controller,
 - cert-manager,
-- rozwiązanie do monitoringu (Prometheus, Grafana),
-- centralny system logowania (Loki, Elasticsearch, OpenSearch).
-
-Powoduje to znacznie większą złożoność wdrożenia oraz wyższe koszty utrzymania.
+- monitoring (Prometheus + Grafana),
+- centralne logowanie (Loki/OpenSearch/Elasticsearch).
 
 ---
 
-## Przykładowe wymagania infrastrukturalne
+# Porównanie infrastruktury
 
-| Element | K3s | MicroK8s | Vanilla Kubernetes |
-|---------|-----|----------|--------------------|
-| Minimalna liczba VM | **1** | **1** | **3–5** |
+| Element | K3s | MicroK8s | Vanilla |
+|---------|-----|----------|----------|
+| Minimalna liczba VM | 1 | 1 | 3–5 |
 | Control Plane | 1 | 1 | 3 |
-| Worker | opcjonalnie | opcjonalnie | osobne węzły |
-| Load Balancer | Nie | Nie | Tak |
-| HAProxy | Nie | Nie | Tak |
-| NFS / Ceph | Opcjonalnie | Opcjonalnie | Zalecane |
-| etcd | Wbudowane | Wbudowane | Osobna konfiguracja |
-| Traefik / Ingress | Wbudowany | Add-on | Instalacja ręczna |
+| Worker | opcjonalny | opcjonalny | osobne węzły |
+| Load Balancer | ❌ | ❌ | ✅ |
+| HAProxy | ❌ | ❌ | ✅ |
+| Storage NFS/Ceph | opcjonalnie | opcjonalnie | zalecane |
+| Traefik | wbudowany | add-on | instalacja ręczna |
+| etcd | wbudowane | wbudowane | konfiguracja ręczna |
 
 ---
 
-## Wpływ na koszt wdrożenia
+# Zużycie zasobów
 
-Różnice w architekturze mają bezpośredni wpływ na koszt projektu.
+| Dystrybucja | RAM | CPU |
+|-------------|-----|-----|
+| K3s | 500–800 MB | Bardzo niskie |
+| MicroK8s | 1,5–2,5 GB | Średnie |
+| Vanilla Kubernetes | 2–4 GB | Średnie |
 
-Przykładowo:
+K3s jest zdecydowanie najbardziej oszczędny pod względem zasobów.
 
-**K3s**
+---
 
-- 1 maszyna wirtualna,
-- około 15–30 minut instalacji,
-- praktycznie brak dodatkowych komponentów.
+# Czas wdrożenia
 
-**MicroK8s**
+| Zadanie | K3s | MicroK8s | Vanilla |
+|----------|-----|----------|----------|
+| Instalacja | 5–15 min | 10–30 min | 1–2 h |
+| Konfiguracja HA | 20–30 min | 1–2 h | 1–3 dni |
+| Środowisko produkcyjne | kilka godzin | ok. 1 dzień | kilka dni |
 
-- 1 maszyna wirtualna,
-- około 30–60 minut konfiguracji.
+---
 
-**Vanilla Kubernetes**
+# Koszt wdrożenia
 
-- minimum 3 maszyny dla Control Plane,
-- osobne Workery,
-- Load Balancer,
-- magazyn danych (NFS, Ceph lub SAN),
-- konfiguracja sieci,
-- certyfikaty,
-- monitoring,
-- backup etcd.
+| Dystrybucja | Minimalna infrastruktura | Szacowany koszt |
+|-------------|--------------------------|-----------------|
+| K3s | 1 × VM | ⭐ |
+| MicroK8s | 1 × VM | ⭐⭐ |
+| Vanilla | 3 × Control Plane + Workery + HAProxy + Storage | ⭐⭐⭐⭐⭐ |
 
-W praktyce oznacza to, że wdrożenie produkcyjnego klastra Vanilla Kubernetes może wymagać **5–8 maszyn wirtualnych** oraz kilku dni pracy administratora, podczas gdy funkcjonalny klaster K3s lub MicroK8s można uruchomić na **jednej maszynie wirtualnej w ciągu kilkunastu minut**.
+Największy koszt Vanilla Kubernetes wynika nie tylko z liczby maszyn, ale również z czasu potrzebnego na konfigurację wszystkich komponentów.
 
-> **Uwaga:** Warto podkreślić, że możliwość uruchomienia K3s lub MicroK8s na jednej maszynie nie oznacza, że jest to zalecana architektura produkcyjna. W środowiskach wymagających wysokiej dostępności (HA) również dla tych dystrybucji rekomenduje się wykorzystanie co najmniej trzech serwerów kontrolnych. Jednak nawet w takiej konfiguracji liczba wymaganych komponentów i stopień skomplikowania pozostają zazwyczaj mniejsze niż w przypadku klasycznego Vanilla Kubernetes.
+---
 
+# Zalety i wady
+
+| Dystrybucja | Zalety | Wady |
+|-------------|---------|------|
+| K3s | Najmniejsze wymagania, szybka instalacja, niski koszt | Mniej opcji domyślnych dla dużych środowisk |
+| MicroK8s | Prosta obsługa, Ubuntu, add-ons | Snap, większe wymagania niż K3s |
+| Vanilla | Maksymalna elastyczność, standard Enterprise | Najbardziej skomplikowane wdrożenie |
+
+---
+
+# Kiedy wybrać daną dystrybucję?
+
+| Scenariusz | Najlepszy wybór |
+|------------|-----------------|
+| HomeLab | 🥇 K3s |
+| Raspberry Pi | 🥇 K3s |
+| Edge Computing | 🥇 K3s |
+| CI/CD | 🥇 K3s |
+| Laptop programisty | 🥇 MicroK8s |
+| Ubuntu Desktop | 🥇 MicroK8s |
+| VMware | 🥇 Vanilla |
+| OpenStack | 🥇 Vanilla |
+| Enterprise | 🥇 Vanilla |
+| Chmura prywatna | 🥇 Vanilla |
+
+---
 
 # Podsumowanie
 
-Nie istnieje jedna najlepsza dystrybucja Kubernetes – wybór zależy od potrzeb organizacji.
+Nie istnieje jedna uniwersalnie najlepsza dystrybucja Kubernetes.
 
-| Zastosowanie | Najlepszy wybór |
-|--------------|-----------------|
-| HomeLab | 🥇 K3s |
-| Edge Computing | 🥇 K3s |
-| Raspberry Pi | 🥇 K3s |
-| Małe środowiska produkcyjne | 🥇 K3s |
-| Development | 🥇 MicroK8s |
-| Ubuntu Desktop | 🥇 MicroK8s |
-| Enterprise | 🥇 Vanilla Kubernetes |
-| Chmura publiczna | 🥇 Vanilla Kubernetes |
-| Nauka działania Kubernetes | 🥇 Vanilla Kubernetes |
+- **K3s** będzie najlepszym wyborem, jeśli zależy nam na szybkim wdrożeniu, niskich kosztach oraz niewielkim zużyciu zasobów. W wielu przypadkach do uruchomienia klastra wystarczy pojedyncza maszyna wirtualna.
 
-## Wnioski
+- **MicroK8s** jest dobrym rozwiązaniem dla programistów oraz użytkowników Ubuntu, którzy potrzebują prostego środowiska testowego lub developerskiego.
 
-Jeżeli priorytetem są **niskie koszty, niewielkie zużycie zasobów oraz szybkie wdrożenie**, najlepszym wyborem będzie **K3s**. Pozwala uruchomić klaster w kilkanaście minut i znacząco ogranicza wymagania sprzętowe.
+- **Vanilla Kubernetes** pozostaje najlepszym wyborem dla dużych środowisk produkcyjnych, gdzie wymagane są wysoka dostępność, pełna kontrola nad konfiguracją oraz integracja z rozbudowaną infrastrukturą.
 
-**MicroK8s** jest dobrym rozwiązaniem dla programistów oraz użytkowników Ubuntu, którzy potrzebują prostego środowiska testowego.
-
-**Vanilla Kubernetes** pozostaje najlepszym wyborem dla **dużych** środowisk produkcyjnych i przedsiębiorstw, w których kluczowe są pełna kontrola nad konfiguracją, maksymalna elastyczność oraz zgodność z rozwiązaniami stosowanymi przez największych dostawców chmury.
+> **Wniosek:** Jeżeli  budujesz niewielkie środowisko, wybierz **K3s**. Jeśli tworzysz dużą platformę dla przedsiębiorstwa, gdzie liczy się pełna kontrola i skalowalność, postaw na **Vanilla Kubernetes**.
