@@ -42,7 +42,6 @@ Oficjalna implementacja rozwijana przez społeczność Kubernetes (CNCF). Admini
 - dużych środowiskach produkcyjnych,
 - centrach danych,
 - chmurach prywatnych,
-- środowiskach Enterprise.
 
 ---
 
@@ -56,13 +55,7 @@ Najważniejsze cechy:
 - szybka instalacja,
 - wbudowany Traefik,
 - wbudowany ServiceLB,
-- możliwość pracy na Raspberry Pi i Edge.
 
-Instalacja:
-
-```bash
-curl -sfL https://get.k3s.io | sh -
-```
 
 ---
 
@@ -78,9 +71,6 @@ Najważniejsze cechy:
 
 Instalacja:
 
-```bash
-sudo snap install microk8s --classic
-```
 
 ---
 
@@ -106,7 +96,6 @@ Już jedna maszyna może stanowić kompletny klaster.
 
 Świetny wybór do:
 
-- HomeLab
 - środowisk developerskich
 - testów
 - małych środowisk produkcyjnych
@@ -198,9 +187,9 @@ K3s jest zdecydowanie najbardziej oszczędny pod względem zasobów.
 
 | Zadanie | K3s | MicroK8s | Vanilla |
 |----------|-----|----------|----------|
-| Instalacja | 5–15 min | 10–30 min | 1–2 h |
-| Konfiguracja HA | 20–30 min | 1–2 h | 1–3 dni |
-| Środowisko produkcyjne | kilka godzin | ok. 1 dzień | kilka dni |
+| Instalacja | krótka | średnia | długa |
+| Konfiguracja HA | krótka| średnia | długa |
+| Środowisko produkcyjne | krótka |średnia  | długa |
 
 ---
 
@@ -231,13 +220,9 @@ Największy koszt Vanilla Kubernetes wynika nie tylko z liczby maszyn, ale równ
 | Scenariusz | Najlepszy wybór |
 |------------|-----------------|
 | HomeLab | 🥇 K3s |
-| Raspberry Pi | 🥇 K3s |
 | Edge Computing | 🥇 K3s |
 | CI/CD | 🥇 K3s |
-| Laptop programisty | 🥇 MicroK8s |
-| Ubuntu Desktop | 🥇 MicroK8s |
-| VMware | 🥇 Vanilla |
-| OpenStack | 🥇 Vanilla |
+| Małe klastryy | 🥇 MicroK8s/ 🥇 K3s |
 | Enterprise | 🥇 Vanilla |
 | Chmura prywatna | 🥇 Vanilla |
 
@@ -253,4 +238,4 @@ Nie istnieje jedna uniwersalnie najlepsza dystrybucja Kubernetes.
 
 - **Vanilla Kubernetes** pozostaje najlepszym wyborem dla dużych środowisk produkcyjnych, gdzie wymagane są wysoka dostępność, pełna kontrola nad konfiguracją oraz integracja z rozbudowaną infrastrukturą.
 
-> **Wniosek:** Jeżeli  budujesz niewielkie środowisko, wybierz **K3s**. Jeśli tworzysz dużą platformę dla przedsiębiorstwa, gdzie liczy się pełna kontrola i skalowalność, postaw na **Vanilla Kubernetes**.
+> **Wniosek:** Jeżeli  budujesz niewielkie środowisko o ograniczonych zasobach, wybierz **K3s**. Jeśli tworzysz dużą platformę dla przedsiębiorstwa, gdzie liczy się pełna kontrola i skalowalność, postaw na **Vanilla Kubernetes**.
