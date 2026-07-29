@@ -818,3 +818,34 @@ Największym ograniczeniem pozostaje:
 - random I/O,
 - sync write overhead.
 
+
+---
+
+
+
+Dobre wyniki — porównajmy punkt po punkcie z wynikami Ceph RBD z dokumentu:
+
+Test	Dokument (wcześniej)	Teraz	Różnica
+Sequential Write	~270 MiB/s	249 MiB/s	-8%
+Sequential Read	~489 MiB/s	485 MiB/s	-1% (praktycznie identycznie)
+Random Read 4k	~16k IOPS	~12.7k IOPS (49.8 MiB/s ÷ 4KiB)	-21%
+Mixed 70/30 — Read	~56 MiB/s	50.9 MiB/s	-9%
+Mixed 70/30 — Write	~24 MiB/s	21.9 MiB/s	-9%
+PostgreSQL WAL/sync write	~47 MiB/s	42.0 MiB/s	-11%
+
+Wniosek: Ceph RBD działa poprawnie i stabilnie — wzorzec wyników jest identyczny jak w oryginalnym benchmarku (mocny sequential write/read, solidny mixed workload, dobry sync-write test dla Postgresa). To potwierdza, że naprawa routingu faktycznie przywróciła pełną, prawidłową funkcjonalność klastra Ceph z poziomu Kubernetes.
+
+Jest jednak spójny, powtarzalny spadek wydajności rzędu 8-21% we wszystkich testach (poza sequential read, gdzie różnica jest znikoma). To nie jest przypadkowy szum — konsekwentny ubytek w każdym teście sugeruje dodatkowy koszt na ścieżce sieciowej. Najbardziej prawdopodobna przyczyna:
+
+Dodatkowy hop przez gateway 172.29.59.1. Trasa, którą teraz ruch idzie do klastra Ceph (172.29.60.0/24 via 172.29.59.1 dev ens20), przechodzi przez router, zamiast (potencjalnie) iść bezpośrednio w tej samej sieci L2, jeśli tak było skonfigurowane w środowisku, na którym powstał oryginalny dokument. Każdy dodatkowy hop routingu to:
+
+dodatkowa latencja per-pakiet (nawet ułamki milisekund robią różnicę przy dużej liczbie małych operacji, szczególnie widać to w random read 4k i pgkiller, gdzie liczy się IOPS/latency, a nie surowy throughput),
+możliwe ograniczenie przepustowości na samym routerze/gatewayu, jeśli nie jest to dedykowany, wysokowydajny link storage.
+
+Co warto sprawdzić, jeśli zależy Ci na odzyskaniu pełnej wydajności:
+
+Zapytaj zespół sieciowy, czy 172.29.59.0/24 i 172.29.60.0/24 mogłyby być spięte bezpośrednio w tym samym VLAN/L2 (bez routingu), zamiast przez gateway — to typowe podejście w dedykowanych sieciach storage (tzw. "storage fabric"), gdzie routing wprowadza niepotrzebny narzut.
+Sprawdź obciążenie/przepustowość samego gatewaya 172.29.59.1 pod obciążeniem — czy to dedykowany router storage, czy może współdzielony z innym ruchem.
+Zweryfikuj MTU na całej ścieżce (ens20 ma 8500, ale trasa idzie teraz przez gateway — jeśli po drodze jest jakieś ogniwo z MTU 1500, może dochodzić do fragmentacji, co dodatkowo obniża throughput przy większych operacjach jak sequential write).
+
+Mimo tego spadku, 42 MiB/s w teście PostgreSQL WAL to nadal solidny wynik (znacznie lepszy niż NFS z dokumentu ~9 MiB/s) — więc Ceph RBD jest w pełni sprawny i nadaje się pod produkcyjny Postgres, tylko z niewielkim narzutem sieciowym wynikającym z topologii po dzisiejszej naprawie.
